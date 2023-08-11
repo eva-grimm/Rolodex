@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+    <title>@ViewData["Title"] - Rolodex</title>
+    @*TO-DO: Update Metadata*@
+    @*<meta name="description"
+          content="Portfolio of projects, skills, and full-stack C# software development blog posts by Cadence Eva.">*@
+
+    @*Favicon*@
+    <link rel="shortcut icon" href="~/favicon.ico" type="image/x-icon">
+
+    @*Bootstrap*@
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9"
+          crossorigin="anonymous">
+    
+    @*Bootstrap Icons*@
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    @*Devicons*@
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
+
+    @*Custom Styling*@
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Rolodex.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <img src="~/img/ROLODEX-Title-Logo.png" alt="ROL/O/DEX" width="200" />
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav text-accent flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-accent" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item text-accent">
+                            <a class="nav-link text-accent" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        </li>
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+
+    <footer class="footer container-fluid text-accent py-3">
+        <div class="container">
+            <div class="row row-cols-1 row-cols-lg-3 text-center align-items-center gy-2">
+                <div class="col text-lg-start">
+                    &copy2023 Cadence Eva Custin
+                </div>
+                <div class="col">
+                    <img src="/img/Cadence-Eva-logo-transparent.png" width="300" alt="Cadence Eva Logo">
+                </div>
+                <div class="col text-lg-end">
+                    <a class="text-decoration-none" href="https://www.linkedin.com/in/cadence-eva-custin/">
+                        <i class="bi bi-linkedin social-icons text-accent"></i>
+                    </a>
+                    <a class="text-decoration-none" href="https://github.com/eva-grimm">
+                        <i class="bi bi-github social-icons"></i>
+                    </a>
+                    <a class="text-decoration-none" href="mailto:eva.custin@gmail.com">
+                        <i class="bi bi-envelope-at social-icons"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    @*Bootstrap*@
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+
+    @*Sweet Alerts*@
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    </script>
+</body>
+</html>

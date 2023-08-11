@@ -1,0 +1,152 @@
+:root {
+    /* default theme */
+    --ce-theme-core: #7ADAF5;
+    --ce-theme-100: hsl(193, 50%, 91%);
+    --ce-theme-150: hsl(193, 50%, 86%);
+    --ce-theme-200: hsl(193, 50%, 81%);
+    --ce-theme-300: hsl(193, 50%, 71%);
+    --ce-theme-400: hsl(193, 50%, 61%);
+    --ce-theme-500: hsl(193, 50%, 51%);
+    --ce-theme-600: hsl(193, 50%, 41%);
+    --ce-theme-700: hsl(193, 50%, 31%);
+    --ce-theme-800: hsl(193, 50%, 21%);
+    --ce-theme-850: hsl(193, 50%, 16%);
+    --ce-theme-900: hsl(193, 50%, 11%);
+    /* accent theme */
+    --ce-accent-core: #f5978f;
+    --ce-accent-100: hsl(5, 84%, 91%);
+    --ce-accent-150: hsl(5, 84%, 86%);
+    --ce-accent-200: hsl(5, 84%, 81%);
+    --ce-accent-250: hsl(5, 84%, 76%);
+    --ce-accent-300: hsl(5, 84%, 71%);
+    --ce-accent-400: hsl(5, 84%, 61%);
+    --ce-accent-500: hsl(5, 84%, 51%);
+    --ce-accent-600: hsl(5, 84%, 41%);
+    --ce-accent-700: hsl(5, 84%, 31%);
+    --ce-accent-800: hsl(5, 84%, 21%);
+    --ce-accent-850: hsl(5, 84%, 16%);
+    --ce-accent-900: hsl(5, 84%, 11%);
+    --ce-dark-color: var(--ce-theme-850);
+    --ce-light-color: #deeefb;
+}
+
+/* #region Sticky Footer */
+html,
+body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex-grow: 1;
+}
+
+footer {
+    flex-shrink: 0
+}
+
+/* #endregion Sticky Footer */
+
+body {
+    /* fallback for old browsers */
+    background-color: var(--ce-theme-100);
+    display: flex;
+    flex-direction: column;
+    color: var(--ce-dark-color);
+    font-family: var(--cf-body-font);
+    font-weight: 400;
+    font-size: 1.2rem;
+}
+
+/* Override of Bootstrap Primary Button */
+.btn-primary {
+    color: white !important;
+    background-color: var(--ce-acent-250) !important;
+    border-color: var(--ce-acent-250);
+}
+
+    .btn-primary:hover {
+        filter: brightness(1.2) !important;
+        background: var(--ce-accent-300);
+        border-color: var(--ce-accent-300);
+    }
+
+    .btn-primary:active,
+    .btn-primary:visited,
+    .btn-primary:focus {
+        filter: brightness(1.2) !important;
+    }
+
+/* #region Element Overrides */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--cf-title-font);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+/* #endregion Element Overrides*/
+
+.navbar,
+.footer {
+    background-color: var(--ce-theme-850);
+}
+
+.text-accent {
+    color: var(--ce-accent-250) !important;
+}
+
+.app-logo {
+    max-width: 500px;
+    max-height: 500px;
+}
+
+.checklist i {
+    color: var(--ce-accent-250);
+    padding-right: .5rem;
+}
+
+.devicons {
+    font-size: 4rem;
+    padding-left: .5rem;
+}
+
+.social-icons {
+    font-size: 2rem;
+    padding-left: .5rem;
+    transition: color 0.5s;
+    color: var(--ce-accent-250);
+}
+
+    .social-icons:hover {
+        color: var(--ce-accent-300)
+    }
+
+.heroCard {
+    min-height: 100%;
+}
+
+/* fix this shit */
+/*.heroTitle {
+    font-size: 3rem;
+    text-transform: uppercase;
+    font-family: var(--cf-title-font);
+    font-weight: 600;
+}
+
+.texthighlight {
+    color: var(--cf-primaryColor);
+}*/
+
+.imgicon {
+    display: inline;
+    height: 3.5rem;
+    margin: 0rem .3rem;
+}
