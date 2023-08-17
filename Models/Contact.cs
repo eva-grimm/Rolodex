@@ -6,10 +6,11 @@ namespace Rolodex.Models
 {
     public class Contact
     {
+        private DateTime _createdDate;
+        private DateTime? _dateOfBirth;
+
         // Primary Key
         public int Id { get; set; }
-
-
         // Foreign Key
         [Required]
         public string? AppUserId { get; set; }
@@ -28,9 +29,16 @@ namespace Rolodex.Models
 
         // Dates
         [DataType(DataType.Date)]
-        public DateTime CreatedDate { get; set; }
+        //public DateTime CreatedDate { get; set; }
+        public DateTime CreatedDate {
+            get => _createdDate.ToLocalTime();
+            set => _createdDate = value.ToUniversalTime();
+        }
         [DataType(DataType.Date), Display(Name = "Birthday")]
-        public DateTime? DateOfBirth { get; set; }
+        public DateTime? DateOfBirth {
+            get => _dateOfBirth?.ToLocalTime();
+            set => _dateOfBirth = value.HasValue ? value.Value.ToUniversalTime() : null;
+        }
 
 
         // Address
@@ -39,7 +47,7 @@ namespace Rolodex.Models
         [Display(Name = "Stress Address Line 2")]
         public string? Address2 { get; set; }
         public string? City { get; set; }
-        public States? States { get; set; }
+        public States? State { get; set; }
         [Display(Name = "Zip Code")]
         [DataType(DataType.PostalCode)]
         public int? ZipCode { get; set; }

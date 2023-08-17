@@ -7,7 +7,7 @@
 
 <h1>@ViewData["Title"]</h1>
 <div class="row">
-    <div class="col-md-4">
+    <div id="internalLogins" class="col-md-4">
         <section>
             <form id="account" method="post">
                 <h2>Use a local account to log in.</h2>
@@ -44,9 +44,21 @@
                     </p>
                 </div>
             </form>
+            <div id="demoLogin" class="mb-1 text-center">
+                <form id="account" method="post">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-12 btn-block">
+                                <button type="submit" style="width:inherit;height:min-content" class="btn btn-outline-primary me-2" name="demoLoginEmail" value="DemoLoginEmail">Demo Login</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </section>
+        
     </div>
-    <div class="col-md-6 col-md-offset-2">
+    <div id="externalLogins" class="col-md-6 col-md-offset-2">
         <section>
             <h3>Use another service to log in.</h3>
             <hr />

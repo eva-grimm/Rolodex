@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rolodex.Models;
+using Rolodex.Models.ViewModels;
 using System.Diagnostics;
 
 namespace Rolodex.Controllers

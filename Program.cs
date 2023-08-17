@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Rolodex.Data;
 using Rolodex.Models;
+using Rolodex.Services;
+using Rolodex.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +17,16 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 // TO-DO: Adjust AddDefaultIdentity to AddIdentity once roles are ready
 builder.Services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddControllersWithViews();
+
+// Register Custom Services
+builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IAddressBookService, AddressBookService>();
+builder.Services.AddScoped<IEmailSender, EmailService>();
+
+builder.Services.AddMvc();
+
+// Bind the email settings to the EmailSettings object
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 var app = builder.Build();
 

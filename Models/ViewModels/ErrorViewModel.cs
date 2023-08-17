@@ -1,4 +1,4 @@
-namespace Rolodex.Models
+namespace Rolodex.Models.ViewModels
 {
     public class ErrorViewModel
     {
