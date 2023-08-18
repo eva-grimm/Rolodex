@@ -22,11 +22,13 @@ namespace Rolodex.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly IConfiguration _config;
 
-        public LoginModel(SignInManager<AppUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<AppUser> signInManager, ILogger<LoginModel> logger, IConfiguration config)
         {
             _signInManager = signInManager;
             _logger = logger;
+            _config = config;
         }
 
         /// <summary>
@@ -102,9 +104,27 @@ namespace Rolodex.Areas.Identity.Pages.Account
             ReturnUrl = returnUrl;
         }
 
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string returnUrl = null, string demoLoginEmail = null)
         {
             returnUrl ??= Url.Content("~/");
+
+            // if demo user button clicked, use demo user instead
+            if (!string.IsNullOrEmpty(demoLoginEmail))
+            {
+                string email = _config[demoLoginEmail] ?? Environment.GetEnvironmentVariable(demoLoginEmail);
+                string password = _config["DemoLoginPassword"] ?? Environment.GetEnvironmentVariable("DemoLoginPassword");
+                var result = await _signInManager.PasswordSignInAsync(email, password, false, lockoutOnFailure: false);
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation("User logged in.");
+                    return LocalRedirect(returnUrl);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid demo login attempt.");
+                    return Page();
+                }
+            }
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 

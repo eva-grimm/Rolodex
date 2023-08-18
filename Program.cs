@@ -9,7 +9,7 @@ using Rolodex.Services.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = DataUtility.GetConnectionString(builder.Configuration) ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -28,7 +28,12 @@ builder.Services.AddMvc();
 // Bind the email settings to the EmailSettings object
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
+// build app
 var app = builder.Build();
+
+// access DataUtility
+var scope = app.Services.CreateScope();
+await DataUtility.ManageDataAsync(scope.ServiceProvider);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

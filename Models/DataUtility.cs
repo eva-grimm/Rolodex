@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Rolodex.Data;
 
 namespace Rolodex.Models
 {
@@ -7,7 +9,9 @@ namespace Rolodex.Models
     {
         public static string GetConnectionString(IConfiguration configuration)
         {
+            // Project is running locally/development
             string? connectionString = configuration.GetConnectionString("DefaultConnection");
+            // Project is running online/published
             string? databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
             return string.IsNullOrEmpty(databaseUrl) ? connectionString! : BuildConnectionString(databaseUrl);
         }
@@ -28,15 +32,50 @@ namespace Rolodex.Models
             return builder.ToString();
         }
 
-        //public static async Task ManageDataAsync(IServiceProvider svcProvider)
-        //{
+        public static async Task ManageDataAsync(IServiceProvider svcProvider)
+        {
+            // obtain necessary services based on the IServiceProvider parameter
+            var dbContextSvc = svcProvider.GetRequiredService<ApplicationDbContext>();
+            var userManagerSvc = svcProvider.GetRequiredService<UserManager<AppUser>>();
+            var configSvc = svcProvider.GetRequiredService<IConfiguration>();
 
-        //}
+            // Align the database by checking Migrations
+            await dbContextSvc.Database.MigrateAsync();
 
-        //// Demo Users Seed Method
-        //private static async Task SeedDemoUsersAsync(UserManager<AppUser> userManager, IConfiguration configuration)
-        //{
+            // Seed Demo User(s)
+            await SeedDemoUsersAsync(userManagerSvc, configSvc);
+        }
 
-        //}
+        // Demo Users Seed Method
+        private static async Task SeedDemoUsersAsync(UserManager<AppUser> userManager, IConfiguration configuration)
+        {
+            string? demoLoginEmail = configuration["DemoLoginEmail"] ?? Environment.GetEnvironmentVariable("DemoLoginEmail");
+            string? demoLoginPassword = configuration["DemoLoginPassword"] ?? Environment.GetEnvironmentVariable("DemoLoginPassword");
+
+            AppUser demoUser = new()
+            {
+                UserName = demoLoginEmail,
+                Email = demoLoginEmail,
+                FirstName = "Demo",
+                LastName = "User",
+                EmailConfirmed = true,
+            };
+
+            try
+            {
+                AppUser? user = await userManager.FindByEmailAsync(demoLoginEmail!);
+                if (user == null)
+                {
+                    await userManager.CreateAsync(demoUser, demoLoginPassword!);
+                }
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine("******* ERROR *******");
+                Console.WriteLine("Error Seeding Demo Login User");
+                Console.WriteLine(ex.Message);
+                Console.WriteLine("*********************");
+            };
+        }
     }
 }

@@ -15,7 +15,6 @@ namespace Rolodex.Models
         [Required]
         public string? AppUserId { get; set; }
 
-
         // Name
         [Required, Display(Name = "First Name")]
         [StringLength(50, ErrorMessage = "The {0} must be at least {2} and max {1} character long.", MinimumLength = 2)]
@@ -25,7 +24,6 @@ namespace Rolodex.Models
         public string? LastName { get; set; }
         [NotMapped]
         public string? FullName { get { return $"{FirstName} {LastName}"; } }
-
 
         // Dates
         [DataType(DataType.Date)]
@@ -40,7 +38,6 @@ namespace Rolodex.Models
             set => _dateOfBirth = value.HasValue ? value.Value.ToUniversalTime() : null;
         }
 
-
         // Address
         [Display(Name = "Street Address")]
         public string? Address1 { get; set; }
@@ -52,7 +49,6 @@ namespace Rolodex.Models
         [DataType(DataType.PostalCode)]
         public int? ZipCode { get; set; }
 
-
         // Contact Info
         [Required, Display(Name = "Email Address")]
         [DataType(DataType.EmailAddress)]
@@ -61,13 +57,11 @@ namespace Rolodex.Models
         [DataType(DataType.PhoneNumber)]
         public string? PhoneNumber { get; set; }
 
-
         // Image
         [NotMapped]
         public IFormFile? ImageFile { get; set; }
         public byte[]? ImageData { get; set; }
         public string? ImageType { get; set; }
-
 
         // Navigation Properties - refers to EntityFramework
         public virtual AppUser? AppUser { get; set; }
