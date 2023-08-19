@@ -103,22 +103,6 @@ namespace Rolodex.Controllers
             return View(nameof(Index),model);
         }
 
-        // GET: Contacts/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null) return NotFound();
-
-            string userId = _userManager.GetUserId(User)!;
-
-            Contact? contact = await _context.Contacts
-                .Include(c => c.AppUser)
-                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserId == userId);
-
-            if (contact == null) return NotFound();
-
-            return View(contact);
-        }
-
         // GET: Contacts/Create
         public async Task<IActionResult> Create()
         {

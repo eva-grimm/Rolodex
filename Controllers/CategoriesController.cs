@@ -49,22 +49,6 @@ namespace Rolodex.Controllers
             return View(categories);
         }
 
-        // GET: Categories/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null) return NotFound();
-
-            string userId = _userManager.GetUserId(User)!;
-
-            Category? category = await _context.Categories
-                .Include(c => c.AppUser)
-                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserId == userId);
-
-            if (category == null) return NotFound();
-
-            return View(category);
-        }
-
         // GET: Categories/Create
         public IActionResult Create()
         {
