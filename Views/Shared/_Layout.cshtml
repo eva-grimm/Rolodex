@@ -6,7 +6,7 @@
     <title>@ViewData["Title"] - Rolodex</title>
     @*TO-DO: Update Metadata*@
     @*<meta name="description"
-          content="Portfolio of projects, skills, and full-stack C# software development blog posts by Cadence Eva.">*@
+    content="Portfolio of projects, skills, and full-stack C# software development blog posts by Cadence Eva.">*@
 
     @*Favicon*@
     <link rel="shortcut icon" href="~/favicon.ico" type="image/x-icon">
@@ -16,7 +16,7 @@
           rel="stylesheet"
           integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9"
           crossorigin="anonymous">
-    
+
     @*Bootstrap Icons*@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
@@ -31,41 +31,56 @@
 
     @*Custom Styling*@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/menupill.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Rolodex.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-                    <img src="~/img/ROLODEX-Title-Logo.png" alt="ROL/O/DEX" width="200" />
+
+    <div id="menuPillContainer" class="navbar navbar-dark">
+        <nav id="menuPill" class="navbar-nav text-light">
+            <div id="home-btn" class="nav-item">
+                <a asp-controller="Home" asp-action="Index" class="nav-link"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom"
+                   data-bs-title="Home" data-bs-custom-class="nav-tooltip">
+                    <div class="icon-container">
+                        <i class="bi bi-house-fill"></i>
+                    </div>
+                    <span class="menu-label">Home</span>
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav text-accent flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-accent" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-accent" asp-controller="Contacts" asp-action="Index">Contacts</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-accent" asp-controller="Categories" asp-action="Index">Categories</a>
-                        </li>
-                        <li class="nav-item text-accent">
-                            <a class="nav-link text-accent" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                    <partial name="_LoginPartial" />
-                </div>
+            </div>
+            <div id="contacts-btn" class="nav-item">
+                <a asp-controller="Contacts" asp-action="Index" class="nav-link"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom"
+                   data-bs-title="Contacts" data-bs-custom-class="nav-tooltip">
+                    <div class="icon-container">
+                        <i class="bi bi-person-rolodex"></i>
+                    </div>
+                    <span class="menu-label">Contacts</span>
+                </a>
+            </div>
+            <div id="categories-btn" class="nav-item">
+                <a asp-controller="Categories" asp-action="Index" class="nav-link"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom"
+                   data-bs-title="Categories" data-bs-custom-class="nav-tooltip">
+                    <div class="icon-container">
+                        <i class="bi bi-tag-fill"></i>
+                    </div>
+                    <span class="menu-label">Categories</span>
+                </a>
+            </div>
+            <div id="about-btn" class="nav-item">
+                <a href="https://cadence-eva.netlify.app/" class="nav-link" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                   data-bs-title="About Me" data-bs-custom-class="nav-tooltip">
+                    <div class="icon-container">
+                        <i class="bi bi-info-circle-fill"></i>
+                    </div>
+                    <span class="menu-label">About Me</span>
+                </a>
             </div>
         </nav>
-    </header>
+    </div>
 
-    <main role="main" class="container-fluid px-3">
+    <main role="main" class="main-container">
         @RenderBody()
     </main>
 

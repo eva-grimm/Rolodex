@@ -61,6 +61,8 @@ footer {
 
 /* #endregion Sticky Footer */
 
+
+/* #region Element Overrides */
 body {
     /* fallback for old browsers */
     background-color: var(--ce-theme-100);
@@ -72,7 +74,6 @@ body {
     font-size: 1.2rem;
 }
 
-/* #region Element Overrides */
 h1,
 h2,
 h3,
@@ -83,6 +84,16 @@ h6 {
     font-weight: 600;
     text-transform: uppercase;
 }
+
+.nav-item > a {
+    color: var(--ce-accentColorDark);
+    transition: .25s ease-in-out;
+}
+
+    .nav-item > a:hover {
+        color: var(--ce-accentColor)
+    }
+
 /* #endregion Element Overrides*/
 
 /* #region Icons */
@@ -111,26 +122,31 @@ h6 {
 .editIcons {
     font-size: 1.5rem;
     opacity: .9;
-    color: var(--cf-primaryColorDark);
+    color: var(--ce-accentColorDark);
 }
 
     .editIcons:hover {
-        color: var(--cf-primaryColor);
+        color: var(--ce-accentColor);
         font-weight: bold;
         opacity: 1;
         cursor: pointer;
     }
 /* #endregion Icons*/
 
-.navbar,
+.main-container {
+    padding-top: 4rem;
+    padding-left: 4rem;
+    padding-right: 4rem;
+}
+
 .footer {
     background-color: var(--ce-theme-850);
 }
 
 /* Override of Bootstrap Primary Button */
 .btn-primary {
-    --bs-btn-bg: var(--ce-accent-250);
-    --bs-btn-border-color: var(--ce-accent-250);
+    --bs-btn-bg: var(--ce-accentColorDark);
+    --bs-btn-border-color: var(--ce-accentColorDark);
     --bs-btn-hover-bg: var(--ce-accent-300);
     --bs-btn-hover-border-color: var(--ce-accent-300);
     --bs-btn-active-bg: var(--ce-accent-400);
@@ -142,8 +158,8 @@ h6 {
 }
 
 .app-logo {
-    max-width: 500px;
-    max-height: 500px;
+    max-width: 400px;
+    max-height: 400px;
 }
 
 .checklist i {
@@ -162,7 +178,7 @@ h6 {
     font-weight: 600;
 }
 
-.texthighlight {
+.text-highlight {
     color: var(--ce-accentColorDark);
 }
 
@@ -187,8 +203,8 @@ figcaption {
 
 .square-img {
     position: absolute;
-    width: 100%;
     height: 100%;
+    width: 100%;
     object-fit: cover;
     object-position: top;
 }
@@ -198,15 +214,37 @@ figcaption {
     height: 150px;
 }
 
-.sideNav {
+.searchNav {
     border-radius: 25px;
-    border-color: var(--ce-accentColor);
+    border-color: var(--ce-accentColorDark);
     border-style: solid;
     border-width: 3px;
-    background-color: var(--ce-accent-250);
+    /*background-color: var(--ce-accentColorDark);*/
     padding-top: 2rem;
     padding-bottom: 2rem;
     padding-left: 1rem;
     padding-right: 1rem;
     height: fit-content;
 }
+
+/* #region Media Queries */
+/*Small devices (landscape phones, 576px and up)*/
+@media (min-width: 576px) {
+}
+
+/* Medium devices (tablets, 768px and up)*/
+@media (min-width: 768px) {
+}
+
+/*Large devices (desktops, 992px and up)*/
+@media (min-width: 992px) {
+}
+
+/*X-Large devices (large desktops, 1200px and up)*/
+@media (min-width: 1200px) {
+}
+
+/*XX-Large devices (larger desktops, 1400px and up)*/
+@media (min-width: 1400px) {
+}
+/* #endregion Media Queries */

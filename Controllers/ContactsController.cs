@@ -236,19 +236,13 @@ namespace Rolodex.Controllers
         // GET: Contacts/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || _context.Contacts == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var contact = await _context.Contacts
+            Contact? contact = await _context.Contacts
                 .Include(c => c.Categories)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (contact == null)
-            {
-                return NotFound();
-            }
+            if (contact == null) return NotFound();
 
             return View(contact);
         }

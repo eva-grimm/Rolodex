@@ -1,19 +1,19 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
 <div class="row">
-    <div class="col-12 col-md-6">
-        <div class="ms-5">
-            <h1 class="heroTitle">All Your <span class="texthighlight">Contacts</span> In One Place</h1>
+    <div class="col-12 col-lg-6">
+        <div id="techShowcase" class="text-center">
+            <h1 class="heroTitle">Say goodbye to <span class="text-highlight">Forgetting</span></h1>
             <div class="subtitle">
-                Organize your events by keeping everyone in the loop.
-                Experience the power of ContactPro - demo today!!
+                Put it in your Rolodex, and say goodbye to forgetting. Contacts, notes, whatever 
+                you need to remember, Rolodex has your back.
                 <br />
                 <br />
                 <strong>Built with pride using cutting edge tech:</strong>
                 <br />
-                <div class="d-flex align-items-center mt-3">
+                <div class="d-flex align-items-center justify-content-center mt-3">
                     @* Show Techs here*@
                     <figure>
                         <img src="https://devicons.railway.app/i/dot-net.svg" class="imgicon" />
@@ -38,18 +38,15 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div class="col-12 col-md-6">
-        <img src="~/img/ROLODEX.png" class="img-fluid app-logo" />
-    </div>
-    <div class="col-12">
-        <div class="row mt-5">
-            <div class="col-12 btn text-center">
-                <a class="btn btn-lg btn-primary rounded-pill px-5" style="height:min-content"
-                   asp-controller="Contacts" asp-action="Index">
-                    Get Started!
-                </a>
-            </div>
+        <div id="callToAction" class="text-center">
+            <a class="btn btn-lg btn-primary rounded-pill px-5 mb-3"
+               style="height:min-content"
+               asp-controller="Contacts" asp-action="Index">
+                Get Started!
+            </a>
         </div>
+    </div>
+    <div class="col-12 col-lg-6 text-center ps-3 pe-5 pb-5">
+        <img src="~/img/ROLODEX.png" class="app-logo" />
     </div>
 </div>

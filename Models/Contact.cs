@@ -27,7 +27,6 @@ namespace Rolodex.Models
 
         // Dates
         [DataType(DataType.Date)]
-        //public DateTime CreatedDate { get; set; }
         public DateTime CreatedDate {
             get => _createdDate.ToLocalTime();
             set => _createdDate = value.ToUniversalTime();
