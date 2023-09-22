@@ -2,10 +2,9 @@
 @inject IImageService _ImageService;
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete Category";
 }
 
-<h1>Delete</h1>
 <div class="row justify-content-center">
     <div class="col-md-8">
         <h3>Are you sure?</h3>
@@ -32,8 +31,8 @@
         </div>
         <form asp-action="Delete" class="d-flex justify-content-between pt-3">
             <input type="hidden" asp-for="Id" />
-            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill btnLink">Cancel</a>
-            <input type="submit" value="Delete" class="btn btn-danger rounded-pill btnLink" />
+            <a asp-action="Index" class="btn btn-secondary rounded-pill btnLink">Cancel</a>
+            <input type="submit" value="Delete" class="btn btn-primary rounded-pill btnLink" />
         </form>
     </div>
 </div>

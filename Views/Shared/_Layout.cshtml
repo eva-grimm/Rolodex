@@ -32,6 +32,7 @@
     @*Custom Styling*@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/menupill.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/customForms.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Rolodex.styles.css" asp-append-version="true" />
 </head>
 <body>
@@ -53,7 +54,7 @@
                    data-bs-toggle="tooltip" data-bs-placement="bottom"
                    data-bs-title="Contacts" data-bs-custom-class="nav-tooltip">
                     <div class="icon-container">
-                        <i class="bi bi-person-rolodex"></i>
+                        <i class="bi bi-people-fill"></i>
                     </div>
                     <span class="menu-label">Contacts</span>
                 </a>
@@ -68,6 +69,16 @@
                     <span class="menu-label">Categories</span>
                 </a>
             </div>
+            <div id="notes-btn" class="nav-item">
+                <a asp-controller="Notes" asp-action="Index" class="nav-link"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom"
+                   data-bs-title="Notes" data-bs-custom-class="nav-tooltip">
+                    <div class="icon-container">
+                        <i class="bi bi-pencil-square"></i>
+                    </div>
+                    <span class="menu-label">Notes</span>
+                </a>
+            </div>
             <div id="about-btn" class="nav-item">
                 <a href="https://cadence-eva.netlify.app/" class="nav-link" data-bs-toggle="tooltip" data-bs-placement="bottom"
                    data-bs-title="About Me" data-bs-custom-class="nav-tooltip">
@@ -75,6 +86,16 @@
                         <i class="bi bi-info-circle-fill"></i>
                     </div>
                     <span class="menu-label">About Me</span>
+                </a>
+            </div>
+            <div id="settings-btn" class="nav-item">
+                <a asp-area="Identity" asp-page="/Account/Manage/Index" class="nav-link"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom"
+                   data-bs-title="Settings" data-bs-custom-class="nav-tooltip">
+                    <div class="icon-container">
+                        <i class="bi bi-gear-fill"></i>
+                    </div>
+                    <span class="menu-label">Settings</span>
                 </a>
             </div>
         </nav>
@@ -109,7 +130,6 @@
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 

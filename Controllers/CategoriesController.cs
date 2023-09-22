@@ -22,16 +22,14 @@ namespace Rolodex.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
-        private readonly IAddressBookService _addressBookService;
         private readonly IEmailSender _emailService;
 
         public CategoriesController(ApplicationDbContext context,
             UserManager<AppUser> userManager,
-            IAddressBookService addressBookService, IEmailSender emailService)
+            IEmailSender emailService)
         {
             _context = context;
             _userManager = userManager;
-            _addressBookService = addressBookService;
             _emailService = emailService;
         }
 
@@ -120,9 +118,13 @@ namespace Rolodex.Controllers
         {
             if (id == null || _context.Categories == null) return NotFound();
 
-            var category = await _context.Categories
+            string userId = _userManager.GetUserId(User)!;
+
+            // Get the first Category with Id matching id that belongs to the logged in user
+            // else return default
+            Category? category = await _context.Categories
                 .Include(c => c.Contacts)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserId == userId);
 
             if (category == null) return NotFound();
 
@@ -134,15 +136,18 @@ namespace Rolodex.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            string userId = _userManager.GetUserId(User)!;
+
             if (_context.Categories == null)
             {
                 return Problem("Entity set 'ApplicationDbContext.Categories'  is null.");
             }
-            var category = await _context.Categories.FindAsync(id);
-            if (category != null)
-            {
-                _context.Categories.Remove(category);
-            }
+            Category? category = await _context.Categories.FindAsync(id);
+
+            // if user is attempting to delete a category that isn't theirs, return not found
+            // otherwise, if the category exists and is theirs, delete
+            if (category != null && category.AppUserId != userId) return NotFound();
+            else if (category != null) _context.Categories.Remove(category);
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

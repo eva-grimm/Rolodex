@@ -1,10 +1,14 @@
-﻿using Rolodex.Services.Interfaces;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Rolodex.Models;
+using Rolodex.Services.Interfaces;
 
 namespace Rolodex.Services
 {
     public class ImageService : IImageService
     {
-        private readonly string? _defaultImage = "/img/DefaultContactImage.png";
+        //private readonly string? _defaultImage = "/img/DefaultContactImage.png";
+        private readonly string? _defaultImage = "https://placehold.co/500/ec4132/FDEEEC?font=roboto&text=Your+Image+Here";
         public string? ConvertByteArrayToFile(byte[]? fileData, string extension)
         {
             try

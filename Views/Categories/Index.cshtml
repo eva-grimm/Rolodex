@@ -5,7 +5,7 @@
 }
 
 <div class="text-end mb-3">
-    <a class="btn btn-primary rounded-pill" asp-action="Create" asp-controller="Categories">New Category<i class="bi bi-bookmark-plus-fill ps-2"></i></a>
+    <a class="btn btn-primary rounded-pill" asp-action="Create" asp-controller="Categories">Add<i class="bi bi-bookmark-plus-fill ps-2"></i></a>
 </div>
 <div class="row p-3 border border-2 shadow-lg bg-light">
     <div class="col-9 fw-bolder">
@@ -20,7 +20,7 @@
         <div class="col-9">
             @category.Name
         </div>
-        <div class="col-3 d-flex">
+        <div class="col-3 d-flex justify-content-end">
             <a class="me-3 editIcons" asp-action="Edit" asp-route-id="@category.Id"><i class="bi bi-pencil-fill "></i></a>
             <a class="me-3 editIcons" asp-action="EmailCategory" asp-route-id="@category.Id"><i class="bi bi-envelope-fill "></i></a>
             <a class="me-3 editIcons" asp-action="Delete" asp-route-id="@category.Id"><i class="bi bi-trash-fill"></i></a>
@@ -28,7 +28,7 @@
     }
 </div>
 
-@section scripts{
+@section Scripts{
     <!--Sweet Alerts-->
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>

@@ -5,10 +5,10 @@ using Rolodex.Services.Interfaces;
 
 namespace Rolodex.Services
 {
-    public class AddressBookService : IAddressBookService
+    public class CategoryService : ICategoryService
     {
         private readonly ApplicationDbContext _context;
-        public AddressBookService(ApplicationDbContext context)
+        public CategoryService(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -66,10 +66,47 @@ namespace Rolodex.Services
                 throw;
             }
         }
-
-        public Task UpdateCategoriesAsync(List<int> categoryIds, int contactId)
+        public async Task AddCategoriesToNoteAsync(List<int> categoryIds, int noteId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Note? note = await _context.Notes
+                    .Include(c => c.Categories)
+                    .FirstOrDefaultAsync(c => c.Id == noteId);
+                if (note is null) return;
+
+                foreach(int categoryId in categoryIds)
+                {
+                    Category? category = await _context.Categories
+                        .FirstOrDefaultAsync(c => c.Id == categoryId);
+                    if (category is not null) note.Categories.Add(category);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task RemoveCategoriesFromNoteAsync(int noteId)
+        {
+            try
+            {
+                Note? note = await _context.Notes
+                    .Include(c => c.Categories)
+                    .FirstOrDefaultAsync(c => c.Id == noteId);
+                if (note is not null)
+                {
+                    note.Categories.Clear();
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }

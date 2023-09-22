@@ -20,7 +20,7 @@ builder.Services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireCo
 
 // Register Custom Services
 builder.Services.AddScoped<IImageService, ImageService>();
-builder.Services.AddScoped<IAddressBookService, AddressBookService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IEmailSender, EmailService>();
 
 builder.Services.AddMvc();
@@ -28,7 +28,6 @@ builder.Services.AddMvc();
 // Bind the email settings to the EmailSettings object
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
-// build app
 var app = builder.Build();
 
 // access DataUtility

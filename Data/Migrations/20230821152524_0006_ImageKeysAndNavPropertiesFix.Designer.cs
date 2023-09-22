@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Rolodex.Data;
@@ -11,9 +12,11 @@ using Rolodex.Data;
 namespace Rolodex.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230821152524_0006_ImageKeysAndNavPropertiesFix")]
+    partial class _0006_ImageKeysAndNavPropertiesFix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -263,14 +266,9 @@ namespace Rolodex.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("NoteId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AppUserId");
-
-                    b.HasIndex("NoteId");
 
                     b.ToTable("Categories");
                 });
@@ -356,14 +354,11 @@ namespace Rolodex.Data.Migrations
                     b.Property<string>("AudioType")
                         .HasColumnType("text");
 
+                    b.Property<int?>("ContactId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<byte[]>("ImageData")
-                        .HasColumnType("bytea");
-
-                    b.Property<string>("ImageType")
-                        .HasColumnType("text");
 
                     b.Property<string>("NoteText")
                         .HasColumnType("text");
@@ -374,6 +369,8 @@ namespace Rolodex.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AppUserId");
+
+                    b.HasIndex("ContactId");
 
                     b.ToTable("Notes");
                 });
@@ -452,10 +449,6 @@ namespace Rolodex.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Rolodex.Models.Note", null)
-                        .WithMany("Categories")
-                        .HasForeignKey("NoteId");
-
                     b.Navigation("AppUser");
                 });
 
@@ -478,7 +471,13 @@ namespace Rolodex.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Rolodex.Models.Contact", "Contact")
+                        .WithMany()
+                        .HasForeignKey("ContactId");
+
                     b.Navigation("AppUser");
+
+                    b.Navigation("Contact");
                 });
 
             modelBuilder.Entity("Rolodex.Models.AppUser", b =>
@@ -486,11 +485,6 @@ namespace Rolodex.Data.Migrations
                     b.Navigation("Categories");
 
                     b.Navigation("Contacts");
-                });
-
-            modelBuilder.Entity("Rolodex.Models.Note", b =>
-                {
-                    b.Navigation("Categories");
                 });
 #pragma warning restore 612, 618
         }

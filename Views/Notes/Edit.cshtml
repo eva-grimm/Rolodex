@@ -1,0 +1,54 @@
+﻿@model Note
+@inject IImageService _ImageService;
+
+@{
+    ViewData["Title"] = "Edit Note";
+}
+
+<form asp-action="Edit" method="post" class="row g-3" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="col-12 col-md-8">
+        <div class="form-group">
+            <input asp-for="NoteTitle" class="form-control" placeholder="Title" />
+            <span asp-validation-for="NoteTitle" class="text-danger"></span>
+
+            <textarea asp-for="NoteText" class="form-control mt-3" rows="15"
+                      placeholder="Take a note..."></textarea>
+            <span asp-validation-for="NoteText" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="form-group">
+            <label asp-for="Categories" class="control-label"></label>
+            <select name="Selected" class="form-control" asp-items="ViewBag.CategoryList" multiple></select>
+        </div>
+        @* if note already has an image, show it in view*@
+        @* otherwise, reduce clutter by hiding image display until file is added*@
+        <div id="noteImageDiv" class="square-img-container @(Model.ImageData is null ? "d-none" : "")">
+            <img id="noteImage" class="square-img"
+                 src="@(Model.ImageData is null? "" : @_ImageService.ConvertByteArrayToFile(Model.ImageData,Model.ImageType!))" />
+        </div>
+        <div class="form-group mb-3">
+            <label class="custom-file-upload mt-3">
+                <input asp-for="ImageFile" id="userFile" class="form-control" accept=".png,.jpg,.jpeg,.gif"
+                       onchange="userFileInput()" />
+                <i class="bi bi-cloud-arrow-up-fill"></i> Picture
+            </label>
+            <span asp-validation-for="ImageFile" class="text-danger"></span>
+            <input type="submit" value="Edit" class="btn btn-primary" />
+            <a asp-action="Index" class="btn btn-secondary">Back</a>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        function userFileInput() {
+            document.getElementById('blogImage').src = window.URL.createObjectURL(document.getElementById("userFile").files[0]);
+            if (document.getElementById("blogImage").src != "") document.getElementById("blogImageDiv").classList.remove("d-none");
+        }
+    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

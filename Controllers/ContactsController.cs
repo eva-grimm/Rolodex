@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +8,6 @@ using Rolodex.Data;
 using Rolodex.Enums;
 using Rolodex.Models;
 using Rolodex.Models.ViewModels;
-using Rolodex.Services;
 using Rolodex.Services.Interfaces;
 
 namespace Rolodex.Controllers
@@ -23,18 +18,19 @@ namespace Rolodex.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
         private readonly IImageService _imageService;
-        private readonly IAddressBookService _addressBookService;
+        private readonly ICategoryService _categoryService;
         private readonly IEmailSender _emailService;
 
         public ContactsController(ApplicationDbContext context, 
             UserManager<AppUser> userManager,
             IImageService imageManager, 
-            IAddressBookService addressBookService, IEmailSender emailService)
+            ICategoryService categoryService, 
+            IEmailSender emailService)
         {
             _context = context;
             _userManager = userManager;
             _imageService = imageManager;
-            _addressBookService = addressBookService;
+            _categoryService = categoryService;
             _emailService = emailService;
         }
 
@@ -51,7 +47,7 @@ namespace Rolodex.Controllers
                 .Include(c => c.Categories)
                 .ToListAsync();
 
-            // what will contain the search result
+            // what will contain the filter result
             List<Contact> model = new();
 
             // filter based on category
@@ -108,13 +104,10 @@ namespace Rolodex.Controllers
         {
             string userId = _userManager.GetUserId(User)!;
 
-            List<Category> categories = await _context.Categories
-                .Where(c => c.AppUserId == userId).ToListAsync();
-
-            // make Viewdata for states
             ViewData["StatesList"] = new SelectList(Enum.GetValues(typeof(States)).Cast<States>());
 
-            // make Viewdata for categories
+            List<Category> categories = await _context.Categories
+                .Where(c => c.AppUserId == userId).ToListAsync();
             ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name");
 
             return View();
@@ -144,7 +137,7 @@ namespace Rolodex.Controllers
 
                 _context.Add(contact);
                 await _context.SaveChangesAsync();
-                await _addressBookService.AddCategoriesToContactAsync(selected, contact.Id);
+                await _categoryService.AddCategoriesToContactAsync(selected, contact.Id);
                 return RedirectToAction(nameof(Index));
             }
             return View(contact);
@@ -183,6 +176,8 @@ namespace Rolodex.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,AppUserId,FirstName,LastName,CreatedDate,DateOfBirth,Address1,Address2,City,State,ZipCode,EmailAddress,PhoneNumber,ImageFile,ImageData,ImageType")] Contact contact, List<int> selected)
         {
+            if (id != contact.Id) return NotFound();
+
             ModelState.Remove("AppUserId");
 
             if (ModelState.IsValid)
@@ -203,8 +198,8 @@ namespace Rolodex.Controllers
 
                     _context.Update(contact);
                     await _context.SaveChangesAsync();
-                    await _addressBookService.RemoveCategoriesFromContactAsync(contact.Id);
-                    await _addressBookService.AddCategoriesToContactAsync(selected, contact.Id);
+                    await _categoryService.RemoveCategoriesFromContactAsync(contact.Id);
+                    await _categoryService.AddCategoriesToContactAsync(selected, contact.Id);
                 }
                 catch (DbUpdateConcurrencyException)
                 // two people are trying to edit the same category at the same time
@@ -222,9 +217,13 @@ namespace Rolodex.Controllers
         {
             if (id == null) return NotFound();
 
+            string userId = _userManager.GetUserId(User)!;
+
+            // Get the first Contact with Id matching id that belongs to the logged in user
+            // else return default
             Contact? contact = await _context.Contacts
                 .Include(c => c.Categories)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserId == userId);
 
             if (contact == null) return NotFound();
 
@@ -232,19 +231,21 @@ namespace Rolodex.Controllers
         }
 
         // POST: Contacts/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            string userId = _userManager.GetUserId(User)!;
+
             if (_context.Contacts == null)
             {
                 return Problem("Entity set 'ApplicationDbContext.Contacts'  is null.");
             }
-            var contact = await _context.Contacts.FindAsync(id);
-            if (contact != null)
-            {
-                _context.Contacts.Remove(contact);
-            }
+            Contact? contact = await _context.Contacts.FindAsync(id);
+
+            // if user is attempting to delete a contact that isn't theirs, return not found
+            // otherwise, if the contact exists and is theirs, delete
+            if (contact != null && contact.AppUserId != userId) return NotFound();
+            else if (contact != null) _context.Contacts.Remove(contact);
             
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

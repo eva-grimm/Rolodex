@@ -3,13 +3,9 @@
 @inject IImageService _ImageService
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Contact";
 }
 
-<h1>Edit</h1>
-
-<h4>Contact</h4>
-<hr />
 <form asp-action="Edit" asp-controller="Contacts" method="post" class="row" enctype="multipart/form-data">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input type="hidden" asp-for="Id" />
@@ -78,25 +74,21 @@
     <div id="pictureInput" class="col-12 col-lg-4 order-md-first">
         <div class="square-img-container">
             <img id="contactImage" class="square-img"
-                 src="@_ImageService.ConvertByteArrayToFile(Model.ImageData,Model.ImageType)">
+                 src="@_ImageService.ConvertByteArrayToFile(Model.ImageData,Model.ImageType!)">
         </div>
-        <div class="form-group">
-            <label asp-for="ImageFile" class="control-label"></label>
-            <input asp-for="ImageFile" class="form-control" accept=".png,.jpg,.jpeg,.gif"
-                   onchange="document.getElementById('contactImage').src= window.URL.createObjectURL(this.files[0])" />
+        <div class="form-group mb-3">
+            <label class="custom-file-upload mt-3">
+                <input asp-for="ImageFile" id="userFile" class="form-control" accept=".png,.jpg,.jpeg,.gif"
+                       onchange="document.getElementById('contactImage').src= window.URL.createObjectURL(this.files[0])" />
+                <i class="bi bi-cloud-arrow-up-fill"></i> Picture
+            </label>
             <span asp-validation-for="ImageFile" class="text-danger"></span>
-        </div>
-    </div>
-    <div id="submitButton" class="col-12">
-        <div class="form-group mt-3 text-end">
             <input type="submit" value="Save" class="btn btn-primary" />
+            <a asp-action="Index" class="btn btn-primary">Back</a>
         </div>
     </div>
 </form>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
 
 @section Scripts {
     @{

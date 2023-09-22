@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Rolodex.Data;
+using Rolodex.Models;
 
-namespace Rolodex.Models
+namespace Rolodex.Data
 {
     public static class DataUtility
     {
@@ -69,7 +69,7 @@ namespace Rolodex.Models
                     await userManager.CreateAsync(demoUser, demoLoginPassword!);
                 }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 Console.WriteLine("******* ERROR *******");
                 Console.WriteLine("Error Seeding Demo Login User");

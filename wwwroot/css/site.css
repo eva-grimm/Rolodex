@@ -61,7 +61,6 @@ footer {
 
 /* #endregion Sticky Footer */
 
-
 /* #region Element Overrides */
 body {
     /* fallback for old browsers */
@@ -133,17 +132,11 @@ h6 {
     }
 /* #endregion Icons*/
 
-.main-container {
-    padding-top: 4rem;
-    padding-left: 4rem;
-    padding-right: 4rem;
+/* #region Bootstrap Overrides */
+.btn {
+    border-radius: 25px;
 }
 
-.footer {
-    background-color: var(--ce-theme-850);
-}
-
-/* Override of Bootstrap Primary Button */
 .btn-primary {
     --bs-btn-bg: var(--ce-accentColorDark);
     --bs-btn-border-color: var(--ce-accentColorDark);
@@ -151,6 +144,28 @@ h6 {
     --bs-btn-hover-border-color: var(--ce-accent-300);
     --bs-btn-active-bg: var(--ce-accent-400);
     --bs-btn-active-border-color: var(--ce-accent-400);
+}
+
+.nav {
+    --bs-nav-link-color: var(--ce-accentColorDark);
+    --bs-nav-link-hover-color: var(--ce-accentColorDark);
+}
+
+.nav-pills,
+.nav-pills .nav-link.active {
+    --bs-nav-pills-link-active-bg: var(--ce-accentColorDark);
+}
+
+/* #endregion Bootstrap Overrides */
+
+.main-container {
+    padding-top: 4rem;
+    padding-left: 6rem;
+    padding-right: 4rem;
+}
+
+.footer {
+    background-color: var(--ce-theme-850);
 }
 
 .text-accent {
@@ -214,37 +229,28 @@ figcaption {
     height: 150px;
 }
 
-.searchNav {
-    border-radius: 25px;
-    border-color: var(--ce-accentColorDark);
-    border-style: solid;
-    border-width: 3px;
-    /*background-color: var(--ce-accentColorDark);*/
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    height: fit-content;
+.line-clamp {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1; /* for backwards compatibility */
+    line-clamp: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
-/* #region Media Queries */
-/*Small devices (landscape phones, 576px and up)*/
-@media (min-width: 576px) {
+.note {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4; /* for backwards compatibility */
+    line-clamp: 4;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
-/* Medium devices (tablets, 768px and up)*/
-@media (min-width: 768px) {
+.note-image {
+    height: 250px;
+    width: 100%;
+    object-fit: cover;
+    overflow: hidden;
 }
-
-/*Large devices (desktops, 992px and up)*/
-@media (min-width: 992px) {
-}
-
-/*X-Large devices (large desktops, 1200px and up)*/
-@media (min-width: 1200px) {
-}
-
-/*XX-Large devices (larger desktops, 1400px and up)*/
-@media (min-width: 1400px) {
-}
-/* #endregion Media Queries */

@@ -1,0 +1,66 @@
+﻿@model IEnumerable<Note>
+@inject IImageService _ImageService;
+
+@{
+    ViewData["Title"] = "Notes";
+}
+
+<div class="text-end mb-3">
+    <a class="btn btn-primary rounded-pill" asp-action="create" asp-controller="notes">Add<i class="bi bi-person-plus-fill ps-2"></i></a>
+</div>
+<div id="notes-list" class="row row-cols-1 row-cols-md-2 g-3 mb-3">
+    @foreach (Note note in Model)
+    {
+        <div class="col">
+            <div class="card" style="height: 250px">
+                <div class="row g-0">
+                    @if (note.ImageData is not null)
+                    {
+                        <div class="col-4">
+                            <img src="@_ImageService.ConvertByteArrayToFile(@note.ImageData,@note.ImageType!)"
+                                 class="note-image rounded-start" />
+                        </div>
+                        <div class="col-8">
+                            <div class="card-body" style="">
+                                <h5 class="card-title line-clamp">@note.NoteTitle</h5>
+                                <p class="card-text note">@note.NoteText</p>
+                                <p class="card-text"></p>
+                            </div>
+                            <div class="card-footer text-body-secondary text-end" 
+                            style="position:absolute; bottom:0; width:66.7%">
+                                <a class="me-3 editIcons" asp-controller="Notes" asp-action="Edit" asp-route-id="@note.Id"><i class="bi bi-pencil-square"></i></a>
+                                <a class="me-3 editIcons" asp-action="Delete" asp-route-id="@note.Id"><i class="bi bi-trash-fill"></i></a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col">
+                            <div class="card-body" style="padding-bottom:50px">
+                                <h5 class="card-title line-clamp">@note.NoteTitle</h5>
+                                <p class="card-text note">@note.NoteText</p>
+                                <p class="card-text"></p>
+                            </div>
+                        </div>
+                        <div class="card-footer text-body-secondary text-end"
+                             style="position:absolute; bottom:0; width:100%">
+                            <a class="me-3 editIcons" asp-controller="Notes" asp-action="Edit" asp-route-id="@note.Id"><i class="bi bi-pencil-square"></i></a>
+                            <a class="me-3 editIcons" asp-action="Delete" asp-route-id="@note.Id"><i class="bi bi-trash-fill"></i></a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function changeNote(noteId) {
+            document.getElementById("noteImageCarouselEdit").innerHTML = "";
+            document.getElementById("noteBeingEdited").value = noteId;
+            carouselImages = document.querySelectorAll(`#noteImageCarousel-${noteId} .carousel-item > img`)
+            carousel.forEach(document.getElementById("noteImageCarouselEdit").innerHTML)
+        }
+    </script>
+}

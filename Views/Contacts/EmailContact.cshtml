@@ -1,6 +1,10 @@
 ﻿@model EmailContactViewModel
 @inject IImageService _ImageService;
 
+@{
+    ViewData["Title"] = "Email Contact";
+}
+
 <style>
     .ck-editor__editable_inline {
         min-height: 300px;
@@ -37,7 +41,7 @@
         </div>
     </form>
 </div>
-@section scripts{
+@section Scripts{
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }

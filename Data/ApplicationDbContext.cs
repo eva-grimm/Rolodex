@@ -13,5 +13,6 @@ namespace Rolodex.Data
 
         public virtual DbSet<Contact> Contacts { get; set; } = default!;
         public virtual DbSet<Category> Categories { get; set; } = default!;
+        public virtual DbSet<Note> Notes { get; set; } = default!;
     }
 }
