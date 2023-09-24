@@ -6,9 +6,10 @@ namespace Rolodex.Models
     {
         // Primary Key
         public int Id { get; set; }
-        // Foreign Key
+        // Foreign Keys
         [Required]
         public string? AppUserId { get; set; }
+
         [Required]
         [Display(Name = "Category Name")]
         public string? Name { get; set; }
@@ -16,5 +17,6 @@ namespace Rolodex.Models
         // Navigation Properties
         public virtual AppUser? AppUser { get; set; }
         public virtual ICollection<Contact> Contacts { get; set; } = new HashSet<Contact>();
+        public virtual ICollection<Note> Notes { get; set; } = new HashSet<Note>();
     }
 }

@@ -15,23 +15,23 @@ namespace Rolodex.Controllers
     [Authorize]
     public class ContactsController : Controller
     {
-        private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
         private readonly IImageService _imageService;
         private readonly ICategoryService _categoryService;
         private readonly IEmailSender _emailService;
+        private readonly IContactService _contactService;
 
-        public ContactsController(ApplicationDbContext context, 
-            UserManager<AppUser> userManager,
-            IImageService imageManager, 
-            ICategoryService categoryService, 
-            IEmailSender emailService)
+        public ContactsController(UserManager<AppUser> userManager,
+            IImageService imageManager,
+            ICategoryService categoryService,
+            IEmailSender emailService,
+            IContactService contactService)
         {
-            _context = context;
             _userManager = userManager;
             _imageService = imageManager;
             _categoryService = categoryService;
             _emailService = emailService;
+            _contactService = contactService;
         }
 
         // GET: Contacts
@@ -42,27 +42,23 @@ namespace Rolodex.Controllers
 
             // get the user's contacts
             string userId = _userManager.GetUserId(User)!;
-            List<Contact> contacts = await _context.Contacts
-                .Where(c => c.AppUserId == userId)
-                .Include(c => c.Categories)
-                .ToListAsync();
+            List<Contact> contacts = (await _contactService.GetContactsAsync(userId))
+                .ToList();
+
+            // and user's categories
+            IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
 
             // what will contain the filter result
             List<Contact> model = new();
 
             // filter based on category
             if (categoryId is null) model = contacts;
-            else model = (await _context.Categories
-                    .Include(c => c.Contacts)
-                    .FirstOrDefaultAsync(c => c.Id == categoryId))!
-                    .Contacts.ToList();
+            else model = categories.SelectMany(c => c.Contacts).ToList();
 
             // order by last name then first name
-            model.OrderBy(c => c.LastName).ThenBy(c => c.FirstName).ToList();
+            model.OrderBy(c => c.LastName).ThenBy(c => c.FirstName);
 
-            // provide the user's categories as well
-            List<Category> categories = await _context.Categories
-                .Where(c => c.AppUserId == userId).ToListAsync();
+            // provide the user's categories
             ViewData["CategoriesList"] = new SelectList(categories, "Id", "Name", categoryId);
 
             return View(model);
@@ -73,10 +69,8 @@ namespace Rolodex.Controllers
         {
             // get the user's contacts
             string userId = _userManager.GetUserId(User)!;
-            List<Contact> contacts = await _context.Contacts
-                .Where(c => c.AppUserId == userId)
-                .Include(c => c.Categories)
-                .ToListAsync();
+            List<Contact> contacts = (await _contactService.GetContactsAsync(userId))
+                .ToList();
 
             // what will contain the search result
             List<Contact> model = new();
@@ -89,14 +83,13 @@ namespace Rolodex.Controllers
                     .ToList();
 
             // provide the user's categories as well
-            List<Category> categories = await _context.Categories
-                .Where(c => c.AppUserId == userId).ToListAsync();
+            IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
             ViewData["CategoriesList"] = new MultiSelectList(categories, "Id", "Name");
 
             // put the user's search into the ViewBag
             ViewData["SearchString"] = searchString;
 
-            return View(nameof(Index),model);
+            return View(nameof(Index), model);
         }
 
         // GET: Contacts/Create
@@ -106,8 +99,7 @@ namespace Rolodex.Controllers
 
             ViewData["StatesList"] = new SelectList(Enum.GetValues(typeof(States)).Cast<States>());
 
-            List<Category> categories = await _context.Categories
-                .Where(c => c.AppUserId == userId).ToListAsync();
+            IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
             ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name");
 
             return View();
@@ -118,7 +110,20 @@ namespace Rolodex.Controllers
         public async Task<IActionResult> Create([Bind("FirstName,LastName,DateOfBirth,Address1,Address2,City,State,ZipCode,EmailAddress,PhoneNumber,ImageFile")] Contact contact, List<int> selected)
         {
             ModelState.Remove("AppUserId");
-            if (ModelState.IsValid)
+
+            if (!ModelState.IsValid)
+            {
+                string userId = _userManager.GetUserId(User)!;
+
+                ViewData["StatesList"] = new SelectList(Enum.GetValues(typeof(States)).Cast<States>());
+
+                IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+                ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name");
+
+                return View();
+            }
+
+            try
             {
                 // Set User Id
                 contact.AppUserId = _userManager.GetUserId(User);
@@ -135,12 +140,21 @@ namespace Rolodex.Controllers
                     contact.ImageType = contact.ImageFile.ContentType;
                 }
 
-                _context.Add(contact);
-                await _context.SaveChangesAsync();
+                await _contactService.AddContactAsync(contact);
                 await _categoryService.AddCategoriesToContactAsync(selected, contact.Id);
                 return RedirectToAction(nameof(Index));
             }
-            return View(contact);
+            catch (Exception)
+            {
+                string userId = _userManager.GetUserId(User)!;
+
+                ViewData["StatesList"] = new SelectList(Enum.GetValues(typeof(States)).Cast<States>());
+
+                IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+                ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name");
+
+                return View();
+            }
         }
 
         // GET: Contacts/Edit/5
@@ -150,23 +164,15 @@ namespace Rolodex.Controllers
 
             string userId = _userManager.GetUserId(User)!;
 
-            // Get the first Contact with Id matching id that belongs to the logged in user
-            // else return default
-            Contact? contact = await _context.Contacts
-                .Include(c => c.Categories)
-                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserId == userId);
-
-            if (contact == null)  return NotFound();
-
-            // make List of user's categories for this contact
-            List<Category> categories = await _context.Categories
-                .Where(c => c.AppUserId == userId).ToListAsync();
-            List<int> categoryIds = contact.Categories.Select(c => c.Id).ToList();
+            Contact? contact = await _contactService.GetContactByIdAsync(id, userId);
+            if (contact == null) return NotFound();
 
             // make Viewdata for states
             ViewData["StatesList"] = new SelectList(Enum.GetValues(typeof(States)).Cast<States>());
 
             // make Viewdata for contact's categories
+            IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+            List<int> categoryIds = contact.Categories.Select(c => c.Id).ToList();
             ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name", selectedValues: categoryIds);
 
             return View(contact);
@@ -180,36 +186,73 @@ namespace Rolodex.Controllers
 
             ModelState.Remove("AppUserId");
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    // Set User Id
-                    contact.AppUserId = _userManager.GetUserId(User);
+                string userId = _userManager.GetUserId(User)!;
 
-                    // Set Image data if one has been chosen
-                    if (contact.ImageFile != null)
-                    {
-                        // Convert file to byte array and assign it to image data
-                        contact.ImageData = await _imageService.ConvertFileToByteArrayAsync(contact.ImageFile);
-                        // Assign ImageType based on the chosen file
-                        contact.ImageType = contact.ImageFile.ContentType;
-                    }
+                // make Viewdata for states
+                ViewData["StatesList"] = new SelectList(Enum.GetValues(typeof(States)).Cast<States>());
 
-                    _context.Update(contact);
-                    await _context.SaveChangesAsync();
-                    await _categoryService.RemoveCategoriesFromContactAsync(contact.Id);
-                    await _categoryService.AddCategoriesToContactAsync(selected, contact.Id);
-                }
-                catch (DbUpdateConcurrencyException)
-                // two people are trying to edit the same category at the same time
+                // make Viewdata for contact's categories
+                IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+                List<int> categoryIds = contact.Categories.Select(c => c.Id).ToList();
+                ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name", selectedValues: categoryIds);
+
+                return View(contact);
+            }
+            try
+            {
+                // Set User Id
+                contact.AppUserId = _userManager.GetUserId(User);
+
+                // Set Image data if one has been chosen
+                if (contact.ImageFile != null)
                 {
-                    if (!ContactExists(contact.Id))  return NotFound();
-                    else throw;
+                    // Convert file to byte array and assign it to image data
+                    contact.ImageData = await _imageService.ConvertFileToByteArrayAsync(contact.ImageFile);
+                    // Assign ImageType based on the chosen file
+                    contact.ImageType = contact.ImageFile.ContentType;
                 }
+
+                await _contactService.UpdateContactAsync(contact);
+                await _categoryService.RemoveCategoriesFromContactAsync(contact.Id);
+                await _categoryService.AddCategoriesToContactAsync(selected, contact.Id);
+
                 return RedirectToAction(nameof(Index));
             }
-            return View(contact);
+            catch (DbUpdateConcurrencyException)
+            // two people are trying to edit the same category at the same time
+            {
+                if (!_contactService.ContactExists(contact.Id)) return NotFound();
+                else
+                {
+                    string userId = _userManager.GetUserId(User)!;
+
+                    // make Viewdata for states
+                    ViewData["StatesList"] = new SelectList(Enum.GetValues(typeof(States)).Cast<States>());
+
+                    // make Viewdata for contact's categories
+                    IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+                    List<int> categoryIds = contact.Categories.Select(c => c.Id).ToList();
+                    ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name", selectedValues: categoryIds);
+
+                    return View(contact);
+                }
+            }
+            catch (Exception)
+            {
+                string userId = _userManager.GetUserId(User)!;
+
+                // make Viewdata for states
+                ViewData["StatesList"] = new SelectList(Enum.GetValues(typeof(States)).Cast<States>());
+
+                // make Viewdata for contact's categories
+                IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+                List<int> categoryIds = contact.Categories.Select(c => c.Id).ToList();
+                ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name", selectedValues: categoryIds);
+
+                return View(contact);
+            }
         }
 
         // GET: Contacts/Delete/5
@@ -219,12 +262,7 @@ namespace Rolodex.Controllers
 
             string userId = _userManager.GetUserId(User)!;
 
-            // Get the first Contact with Id matching id that belongs to the logged in user
-            // else return default
-            Contact? contact = await _context.Contacts
-                .Include(c => c.Categories)
-                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserId == userId);
-
+            Contact? contact = await _contactService.GetContactByIdAsync(id, userId);
             if (contact == null) return NotFound();
 
             return View(contact);
@@ -236,18 +274,13 @@ namespace Rolodex.Controllers
         {
             string userId = _userManager.GetUserId(User)!;
 
-            if (_context.Contacts == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Contacts'  is null.");
-            }
-            Contact? contact = await _context.Contacts.FindAsync(id);
+            Contact? contact = await _contactService.GetContactByIdAsync(id, userId);
 
             // if user is attempting to delete a contact that isn't theirs, return not found
             // otherwise, if the contact exists and is theirs, delete
             if (contact != null && contact.AppUserId != userId) return NotFound();
-            else if (contact != null) _context.Contacts.Remove(contact);
-            
-            await _context.SaveChangesAsync();
+            else if (contact != null) await _contactService.DeleteContactAsync(contact);
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -259,11 +292,10 @@ namespace Rolodex.Controllers
             if (id is null) return NotFound();
 
             string userId = _userManager.GetUserId(User)!;
-
+            
             // Get the first Contact with Id matching id that belongs to the logged in user
             // else return default
-            Contact? contact = await _context.Contacts
-                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserId == userId);
+            Contact? contact = await _contactService.GetContactByIdAsync(id, userId);
 
             if (contact == null) return NotFound();
 
@@ -299,7 +331,7 @@ namespace Rolodex.Controllers
                     // Send SweetAlert for success
                     string? swalMessage = "Success: Email sent!";
 
-                    return RedirectToAction(nameof(Index), new { swalMessage = swalMessage});
+                    return RedirectToAction(nameof(Index), new { swalMessage = swalMessage });
                 }
                 catch (Exception)
                 {
@@ -311,11 +343,6 @@ namespace Rolodex.Controllers
                 }
             }
             return View(viewModel);
-        }
-
-        private bool ContactExists(int id)
-        {
-          return (_context.Contacts?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

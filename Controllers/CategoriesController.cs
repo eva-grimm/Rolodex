@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Rolodex.Data;
 using Rolodex.Models;
-using Rolodex.Models.ViewModels;
-using Rolodex.Services;
 using Rolodex.Services.Interfaces;
 
 namespace Rolodex.Controllers
@@ -20,17 +13,17 @@ namespace Rolodex.Controllers
     [Authorize]
     public class CategoriesController : Controller
     {
-        private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
         private readonly IEmailSender _emailService;
+        private readonly ICategoryService _categoryService;
 
-        public CategoriesController(ApplicationDbContext context,
-            UserManager<AppUser> userManager,
-            IEmailSender emailService)
+        public CategoriesController(UserManager<AppUser> userManager,
+            IEmailSender emailService,
+            ICategoryService categoryService)
         {
-            _context = context;
             _userManager = userManager;
             _emailService = emailService;
+            _categoryService = categoryService;
         }
 
         // GET: Categories
@@ -41,9 +34,7 @@ namespace Rolodex.Controllers
 
             // get the user's categories
             string userId = _userManager.GetUserId(User)!;
-            IEnumerable<Category> categories = await _context.Categories
-                .Where(c => c.AppUserId == userId)
-                .ToListAsync();
+            IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
             return View(categories);
         }
 
@@ -60,14 +51,22 @@ namespace Rolodex.Controllers
         {
             ModelState.Remove("AppUserId");
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+            {
+                return View(category);
+            }
+
+            try
             {
                 category.AppUserId = _userManager.GetUserId(User);
-                _context.Add(category);
-                await _context.SaveChangesAsync();
+                await _categoryService.AddCategoryAsync(category);
+
                 return RedirectToAction(nameof(Index));
             }
-            return View(category);
+            catch (Exception)
+            {
+                return View(category);
+            }
         }
 
         // GET: Categories/Edit/5
@@ -77,79 +76,66 @@ namespace Rolodex.Controllers
 
             string userId = _userManager.GetUserId(User)!;
 
-            // Get the first Category with Id matching id that belongs to the logged in user
-            // else return default
-            Category? category = await _context.Categories
-                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserId == userId);
-
+            Category? category = await _categoryService.GetUserCategoryByIdAsync(id, userId);
             if (category == null) return NotFound();
 
             return View(category);
         }
 
         // POST: Categories/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("AppUserId,Name")] Category category)
         {
             if (id != category.Id) return NotFound();
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(category);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                // two people are trying to edit the same category at the same time
-                {
-                    if (!CategoryExists(category.Id)) return NotFound();
-                    else throw;
-                }
+                return View(category);
+            }
+            try
+            {
+                await _categoryService.UpdateCategoryAsync(category);
+
                 return RedirectToAction(nameof(Index));
             }
-
-            return View(category);
+            catch (DbUpdateConcurrencyException)
+            // two people are trying to edit the same category at the same time
+            {
+                if (!_categoryService.CategoryExists(category.Id)) return NotFound();
+                else return View(category);
+            }
+            catch (Exception)
+            {
+                return View(category);
+            }
         }
 
         // GET: Categories/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || _context.Categories == null) return NotFound();
+            if (id == null) return NotFound();
 
             string userId = _userManager.GetUserId(User)!;
 
-            // Get the first Category with Id matching id that belongs to the logged in user
-            // else return default
-            Category? category = await _context.Categories
-                .Include(c => c.Contacts)
-                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserId == userId);
-
+            Category? category = await _categoryService.GetUserCategoryByIdAsync(id, userId);
             if (category == null) return NotFound();
 
             return View(category);
         }
 
         // POST: Categories/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             string userId = _userManager.GetUserId(User)!;
 
-            if (_context.Categories == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Categories'  is null.");
-            }
-            Category? category = await _context.Categories.FindAsync(id);
+            Category? category = await _categoryService.GetUserCategoryByIdAsync(id, userId);
 
             // if user is attempting to delete a category that isn't theirs, return not found
             // otherwise, if the category exists and is theirs, delete
             if (category != null && category.AppUserId != userId) return NotFound();
-            else if (category != null) _context.Categories.Remove(category);
+            else if (category != null) await _categoryService.DeleteCategoryAsync(category);
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
@@ -163,19 +149,12 @@ namespace Rolodex.Controllers
 
             string userId = _userManager.GetUserId(User)!;
 
-            // Get the first Category with Id matching id that belongs to the logged in user
-            // else return default
-            Category? category = await _context.Categories
-                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserId == userId);
-
+            Category? category = await _categoryService.GetUserCategoryByIdAsync(id, userId);
             if (category == null) return NotFound();
 
             // Build list of contacts in that category
             List<Contact> emailContacts = new();
-            emailContacts = (await _context.Categories
-                .Include(c => c.Contacts)
-                .FirstOrDefaultAsync(c => c.Id == id))!
-                .Contacts.ToList();
+            emailContacts = category.Contacts.ToList();
 
             // build string containing the emails for each of those contacts
             StringBuilder stringBuilder = new();
@@ -184,7 +163,7 @@ namespace Rolodex.Controllers
                 stringBuilder.Append($"{contact.EmailAddress};");
             }
             //// remove final ; then build string
-            stringBuilder.Remove(stringBuilder.ToString().Length-1, 1);
+            stringBuilder.Remove(stringBuilder.ToString().Length - 1, 1);
             string? emailList = stringBuilder.ToString();
 
             // populate model
@@ -226,10 +205,6 @@ namespace Rolodex.Controllers
                 }
             }
             return View(model);
-        }
-        private bool CategoryExists(int id)
-        {
-            return (_context.Categories?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

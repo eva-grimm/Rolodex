@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Rolodex.Data;
 using Rolodex.Models;
+using Rolodex.Services;
 using Rolodex.Services.Interfaces;
 
 namespace Rolodex.Controllers
@@ -16,35 +17,75 @@ namespace Rolodex.Controllers
     [Authorize]
     public class NotesController : Controller
     {
-        private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
         private readonly IImageService _imageService;
         private readonly ICategoryService _categoryService;
+        private readonly INoteService _noteService;
 
-        public NotesController(ApplicationDbContext context,
-            UserManager<AppUser> userManager,
+        public NotesController(UserManager<AppUser> userManager,
             IImageService imageService,
-            ICategoryService categoryService)
+            ICategoryService categoryService,
+            INoteService noteService)
         {
-            _context = context;
             _userManager = userManager;
             _imageService = imageService;
             _categoryService = categoryService;
+            _noteService = noteService;
         }
 
         // GET: Notes
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? categoryId)
         {
             // get the user's notes
             string userId = _userManager.GetUserId(User)!;
-            List<Note> notes = await _context.Notes
-                .Where(c => c.AppUserId == userId)
-                .ToListAsync();
+            List<Note> notes = (await _noteService.GetUserNotesAsync(userId)).ToList();
 
-            // order by date, newest to oldest
-            notes.OrderBy(d => d.CreatedDate).ToList();
+            // and user's categories
+            IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
 
-            return View(notes);
+            // what will contain the filter result
+            List<Note> model = new();
+
+            // filter based on category
+            if (categoryId is null) model = notes;
+            else model = categories.SelectMany(c => c.Notes).ToList();
+
+            // order
+            model.OrderBy(n => n.Updated).ThenBy(n => n.Created);
+
+            // provide the user's categories
+            ViewData["CategoriesList"] = new SelectList(categories, "Id", "Name", categoryId);
+
+            return View(model);
+        }
+
+        // GET: Filtered Contacts
+        public async Task<IActionResult> SearchNotes(string? searchString)
+        {
+            // get the user's contacts
+            string userId = _userManager.GetUserId(User)!;
+            List<Note> notes = (await _noteService.GetUserNotesAsync(userId))
+                .ToList();
+
+            // what will contain the search result
+            List<Note> model = new();
+
+            // populate model with results
+            if (string.IsNullOrEmpty(searchString)) model = notes;
+            else model = notes.Where(c => c.NoteTitle!.ToLower().Contains(searchString.ToLower())
+                || c.NoteText?.ToLower().Contains(searchString.ToLower()) == true)
+                .OrderBy(n => n.Updated)
+                    .ThenBy(n => n.Created)
+                .ToList();
+
+            // provide the user's categories as well
+            IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+            ViewData["CategoriesList"] = new MultiSelectList(categories, "Id", "Name");
+
+            // put the user's search into the ViewBag
+            ViewData["SearchString"] = searchString;
+
+            return View(nameof(Index), model);
         }
 
         // GET: Notes/Create
@@ -52,8 +93,7 @@ namespace Rolodex.Controllers
         {
             string userId = _userManager.GetUserId(User)!;
 
-            List<Category> categories = await _context.Categories
-                .Where(c => c.AppUserId == userId).ToListAsync();
+            IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
             ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name");
 
             return View();
@@ -61,16 +101,24 @@ namespace Rolodex.Controllers
 
         // POST: Notes/Create
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("NoteTitle,CreatedDate,NoteText,AudioData,AudioType,ImageFile")] Note note, List<int> selected)
+        public async Task<IActionResult> Create([Bind("NoteTitle,Created,NoteText,AudioData,AudioType,ImageFile")] Note note, List<int> selected)
         {
             ModelState.Remove("AppUserId");
-            if (ModelState.IsValid)
-            {
-                // Set User Id
-                note.AppUserId = _userManager.GetUserId(User);
 
-                // Set Created Date
-                note.CreatedDate = DateTime.Now;
+            if (!ModelState.IsValid)
+            {
+                string userId = _userManager.GetUserId(User)!;
+
+                IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+                ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name", selected);
+
+                return View(note);
+            }
+
+            try
+            {
+                note.AppUserId = _userManager.GetUserId(User);
+                note.Created = DateTime.Now;
 
                 // Set Image data if one has been chosen
                 if (note.ImageFile != null)
@@ -81,16 +129,19 @@ namespace Rolodex.Controllers
                     note.ImageType = note.ImageFile.ContentType;
                 }
 
-                // handle categories
-
-                // Handle Audio
-
-                _context.Add(note);
-                await _context.SaveChangesAsync();
+                await _noteService.AddNoteAsync(note);
                 await _categoryService.AddCategoriesToNoteAsync(selected, note.Id);
                 return RedirectToAction(nameof(Index));
             }
-            return View(note);
+            catch (Exception)
+            {
+                string userId = _userManager.GetUserId(User)!;
+
+                IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+                ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name", selected);
+
+                return View(note);
+            }
         }
 
         // GET: Notes/Edit/5
@@ -100,54 +151,74 @@ namespace Rolodex.Controllers
 
             string userId = _userManager.GetUserId(User)!;
 
-            Note? note = await _context.Notes
-                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserId == userId);
+            Note? note = await _noteService.GetNoteByIdAsync(id, userId);
             if (note == null) return NotFound();
 
-            List<Category> categories = await _context.Categories
-                .Where(c => c.AppUserId == userId).ToListAsync();
-            ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name");
+            IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+            List<int> categoryIds = note.Categories.Select(n => n.Id).ToList();
+            ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name", categoryIds);
 
             return View(note);
         }
 
         // POST: Notes/Edit/5
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,AppUserId,NoteTitle,CreatedDate,NoteText,AudioData,AudioType")] Note note)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,AppUserId,NoteTitle,Created,Updated,NoteText,AudioData,AudioType,ImageData,ImageType,ImageFile")] Note note, List<int> selected)
         {
             if (id != note.Id) return NotFound();
+            string userId = _userManager.GetUserId(User)!;
 
             ModelState.Remove("AppUserId");
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
+                IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+                List<int> categoryIds = note.Categories.Select(n => n.Id).ToList();
+                ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name", categoryIds);
+
+                return View(note);
+            }
+
+            try
+            {
+                note.AppUserId = _userManager.GetUserId(User);
+                note.Updated = DateTime.Now;
+
+                // Set Image data if one has been chosen
+                if (note.ImageFile != null)
                 {
-                    // Set User Id
-                    note.AppUserId = _userManager.GetUserId(User);
-
-                    // Set Image data if one has been chosen
-                    if (note.ImageFile != null)
-                    {
-                        // Convert file to byte array and assign it to image data
-                        note.ImageData = await _imageService.ConvertFileToByteArrayAsync(note.ImageFile);
-                        // Assign ImageType based on the chosen file
-                        note.ImageType = note.ImageFile.ContentType;
-                    }
-
-                    // Handle Audio
-
-                    _context.Update(note);
-                    await _context.SaveChangesAsync();
+                    // Convert file to byte array and assign it to image data
+                    note.ImageData = await _imageService.ConvertFileToByteArrayAsync(note.ImageFile);
+                    // Assign ImageType based on the chosen file
+                    note.ImageType = note.ImageFile.ContentType;
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!NoteExists(note.Id)) return NotFound();
-                    else throw;
-                }
+
+                await _noteService.UpdateNoteAsync(note);
+                await _categoryService.AddCategoriesToNoteAsync(selected, note.Id);
+
                 return RedirectToAction(nameof(Index));
             }
-            return View(note);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_noteService.NoteExists(note.Id)) return NotFound();
+                else
+                {
+
+                    IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+                    List<int> categoryIds = note.Categories.Select(n => n.Id).ToList();
+                    ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name", categoryIds);
+
+                    return View(note);
+                }
+            }
+            catch (Exception)
+            {
+                IEnumerable<Category> categories = await _categoryService.GetUserCategoriesAsync(userId);
+                List<int> categoryIds = note.Categories.Select(n => n.Id).ToList();
+                ViewData["CategoryList"] = new MultiSelectList(categories, "Id", "Name", categoryIds);
+
+                return View(note);
+            }
         }
 
         // GET: Notes/Delete/5
@@ -157,41 +228,26 @@ namespace Rolodex.Controllers
 
             string userId = _userManager.GetUserId(User)!;
 
-            // Get the first Note with Id matching id that belongs to the logged in user
-            // else return default
-            Note? note = await _context.Notes
-                .FirstOrDefaultAsync(c => c.Id == id && c.AppUserId == userId);
-
+            Note? note = await _noteService.GetNoteByIdAsync(id, userId);
             if (note == null) return NotFound();
 
             return View(note);
         }
 
         // POST: Notes/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             string userId = _userManager.GetUserId(User)!;
 
-            if (_context.Notes == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Note' is null.");
-            }
-            Note? note = await _context.Notes.FindAsync(id);
+            Note? note = await _noteService.GetNoteByIdAsync(id, userId);
 
             // if user is attempting to delete a note that isn't theirs, return not found
             // otherwise, if the note exists and is theirs, delete
             if (note != null && note.AppUserId != userId) return NotFound();
-            else if (note != null) _context.Notes.Remove(note);
+            else if (note != null) await _noteService.DeleteNoteAsync(note);
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool NoteExists(int id)
-        {
-            return (_context.Notes?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

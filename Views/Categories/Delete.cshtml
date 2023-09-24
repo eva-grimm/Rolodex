@@ -27,9 +27,22 @@
                         </div>
                     }
                 </div>
+                <div class="text-muted fs-6">
+                    There @(Model.Notes.Count == 1 ? "is 1 note" : $"are {Model.Notes.Count} notes")
+                    in this category
+                </div>
+                <div class="d-flex">
+                    @foreach (Note note in Model.Notes)
+                    {
+                        <div class="square-img-container m-2" style="height: 180px; width: 180px;"
+                             data-bs-toggle="tooltip" data-bs-title="@note.NoteTitle" data-bs-placement="top">
+                            <img class="square-img" src="@_ImageService.ConvertByteArrayToFile(note.ImageData!, note.ImageType!)">
+                        </div>
+                    }
+                </div>
             </div>
         </div>
-        <form asp-action="Delete" class="d-flex justify-content-between pt-3">
+        <form asp-action="Delete" class="d-flex justify-content-between pt-3 pb-3">
             <input type="hidden" asp-for="Id" />
             <a asp-action="Index" class="btn btn-secondary rounded-pill btnLink">Cancel</a>
             <input type="submit" value="Delete" class="btn btn-primary rounded-pill btnLink" />

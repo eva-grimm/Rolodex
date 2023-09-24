@@ -1,21 +1,30 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Rolodex.Models
 {
     public class Note
     {
-        private DateTime _createdDate;
+        private DateTime _created;
+        private DateTime? _updated;
 
         // Primary Key
         public int Id { get; set; }
 
         // Properties
         [DataType(DataType.Date)]
-        public DateTime CreatedDate
+        public DateTime Created
         {
-            get => _createdDate.ToLocalTime();
-            set => _createdDate = value.ToUniversalTime();
+            get => _created.ToLocalTime();
+            set => _created = value.ToUniversalTime();
+        }
+
+        [DataType(DataType.Date)]
+        public DateTime? Updated
+        {
+            get => _updated?.ToLocalTime();
+            set => _updated = value.HasValue ? value.Value.ToUniversalTime() : null;
         }
 
         public string? NoteTitle { get; set; }

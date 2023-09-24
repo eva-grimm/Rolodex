@@ -119,9 +119,9 @@ h6 {
 }
 
 .editIcons {
-    font-size: 1.5rem;
     opacity: .9;
     color: var(--ce-accentColorDark);
+    font-size: 1.2rem;
 }
 
     .editIcons:hover {
@@ -130,6 +130,13 @@ h6 {
         opacity: 1;
         cursor: pointer;
     }
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .editIcons {
+        font-size: 1.2rem;
+    }
+}
 /* #endregion Icons*/
 
 /* #region Bootstrap Overrides */
@@ -254,3 +261,26 @@ figcaption {
     object-fit: cover;
     overflow: hidden;
 }
+
+.card-text {
+    font-size: 0.85rem;
+    overflow-x: hidden;
+}
+
+.card-title {
+    overflow-x: hidden;
+}
+
+/* Medium devices (tablets, 768px and up)*/
+/*@media (min-width: 768px) {*/
+    /*.card-text {
+        font-size: 0.7rem;
+    }*/
+/*}*/
+
+/* Large devices (desktops, 992px and up) */
+/*@media (min-width: 992px) {
+    .card-text {
+        font-size: 0.7rem;
+    }
+}*/
